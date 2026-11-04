@@ -1,0 +1,7 @@
+flask==3.0.3
+requests==2.32.3
+python-dotenv==1.0.1
+apscheduler==3.10.4
+gunicorn==22.0.0
+google-auth==2.56.0
+google-api-python-client==2.126.0
