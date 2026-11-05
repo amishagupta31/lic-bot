@@ -1,33 +1,28 @@
 SCORES = {
-    'intro_yes': 5,
-    'gender_yes': 0,
-    'gender_no': None,       # gate fail
-    'district_karnal': 10,
-    'district_other': None,  # gate fail
-    'age_yes': 10,
-    'age_no': None,          # gate fail
-    'edu_cert': 20,
-    'edu_no_cert': 10,
-    'edu_fail': None,        # gate fail
-    'mot_yes': 20,
-    'mot_maybe': 10,
-    'comm_yes': 20,
-    'comm_maybe': 10,
-    'comm_no': 0,
-    'time_yes': 15,
-    'time_maybe': 8,
-    'time_no': 0,
+    'district_karnal': 25,
+    'district_other':  None,  # gate fail
+    'age_yes':         0,     # gate only
+    'age_no':          None,  # gate fail
+    'edu_cert':        25,
+    'edu_no_cert':     10,
+    'edu_fail':        None,  # gate fail
+    'mot_yes':         5,
+    'mot_maybe':       2,
+    'comm_yes':        25,
+    'comm_maybe':      12,
+    'comm_no':         0,
+    'time_yes':        20,
+    'time_maybe':      10,
+    'time_no':         0,
 }
 
 GATE_CHECKS = [
-    {'key': 'gender',    'fail_id': 'gender_no',      'label': 'Gender'},
     {'key': 'district',  'fail_id': 'district_other', 'label': 'District'},
-    {'key': 'age',       'fail_id': 'age_no',         'label': 'Age 18-70'},
+    {'key': 'age',       'fail_id': 'age_no',         'label': 'Age 18+'},
     {'key': 'education', 'fail_id': 'edu_fail',       'label': 'Education'},
 ]
 
 GATE_FAILURES = {
-    'gender':    'gender_no',
     'district':  'district_other',
     'age':       'age_no',
     'education': 'edu_fail',

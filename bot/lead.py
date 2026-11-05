@@ -48,6 +48,10 @@ def _send_step(to, step):
         send_message(to, step['text'])
 
 
+def _is_message_step(step):
+    return step.get('type') == 'message'
+
+
 def handle_lead_message(message, from_phone):
     session = get_session(from_phone)
 
@@ -67,6 +71,13 @@ def handle_lead_message(message, from_phone):
         return
 
     current_step = FLOW_STEPS[step_index]
+
+    # Auto-advance 'message' type steps (send and immediately move to next)
+    if _is_message_step(current_step):
+        send_message(from_phone, current_step['text'])
+        _advance(from_phone, session)
+        return
+
     msg_type = message.get('type')
 
     # ── Button reply ──────────────────────────────────────────────────────────
@@ -115,11 +126,13 @@ def _handle_button(from_phone, session, button_id):
         _send_step(from_phone, current_step)
         return
 
-    # intro_no or any gate fail exit message
+    # Gate fail exit message
     if button_id in EXIT_MESSAGES:
         answers[current_step['key']] = button_id
         set_session(from_phone, session)
-        send_message(from_phone, EXIT_MESSAGES[button_id])
+        naam = answers.get('name', 'Aap')
+        exit_msg = EXIT_MESSAGES[button_id].replace('{naam}', naam)
+        send_message(from_phone, exit_msg)
 
         # Save not-qualified lead
         score, category, flags = score_session(answers)
@@ -142,7 +155,13 @@ def _advance(from_phone, session):
         _complete_flow(from_phone, session)
         return
 
-    _send_step(from_phone, FLOW_STEPS[next_index])
+    next_step = FLOW_STEPS[next_index]
+    if _is_message_step(next_step):
+        send_message(from_phone, next_step['text'])
+        _advance(from_phone, session)
+        return
+
+    _send_step(from_phone, next_step)
 
 
 def _complete_flow(from_phone, session):
@@ -151,24 +170,15 @@ def _complete_flow(from_phone, session):
 
     name = answers.get('name', 'Aap')
 
-    if category == 'HOT':
+    if category in ('HOT', 'WARM'):
         msg = (
-            f"Bahut bahut shukriya {name}! 🙏\n\n"
-            f"🔥 Aap hamare *top candidates* mein hain!\n\n"
-            "Humari team jald hi aapse contact karegi. "
-            "Apna number ready rakhein! 😊"
-        )
-    elif category == 'WARM':
-        msg = (
-            f"Dhanyavaad {name}! 🙏\n\n"
-            "Aap ek *achhi candidate* hain.\n\n"
-            "Humari team 1-2 din mein aapse baat karegi. 😊"
+            f"Dhanyavaad {name} ji! Hamari team aapko jaldi call karegi. "
+            f"Apna 10th certificate tayyar rakhein. 🙏"
         )
     else:
         msg = (
-            f"Shukriya {name}! 🙏\n\n"
-            "Aapki jankari hume mili. "
-            "Hum aapse zaroor touch mein rahenge. 😊"
+            f"Dhanyavaad {name} ji. Abhi yeh mauka sirf Karnal district ke "
+            f"18+ aur 10th pass logon ke liye hai. Aapke samay ke liye shukriya. 🙏"
         )
 
     send_message(from_phone, msg)
