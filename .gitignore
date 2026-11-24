@@ -13,6 +13,7 @@ env/
 *.log
 .DS_Store
 test_bot.py
+test_meta_ads.py
 node_modules/
 package-lock.json
 *.js
