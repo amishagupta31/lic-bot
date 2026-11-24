@@ -1,7 +1,7 @@
 import re
 from bot.flow import FLOW_STEPS, EXIT_MESSAGES, COMM_MAYBE_EXPLANATION
 from bot.scoring import score_session, GATE_FAILURES
-from bot.sessions import get_session, set_session, delete_session, new_session
+from bot.sessions import get_session, set_session, delete_session, new_session, save_history, get_history
 from bot.notifications import send_lead_alert
 from integrations.whatsapp import send_message, send_buttons
 from integrations.sheets import save_lead
@@ -59,6 +59,23 @@ def handle_lead_message(message, from_phone):
     if session and ('step' not in session or 'answers' not in session):
         delete_session(from_phone)
         session = None
+
+    # Returning user — already completed the form before
+    if not session:
+        history = get_history(from_phone)
+        if history:
+            naam = history.get('answers', {}).get('name', 'Aap')
+            cat  = history.get('category', '')
+            if cat in ('HOT', 'WARM'):
+                send_message(from_phone,
+                    f"Namaste {naam} ji! 🙏 Aapki jaankari humare paas hai. "
+                    f"Hamari team aapko call karegi jaldi. Koi aur sawaal ho toh poochh sakte hain.")
+            else:
+                send_message(from_phone,
+                    f"Namaste {naam} ji! 🙏 Aapne pehle bhi humse baat ki thi. "
+                    f"Abhi is yojana mein koi jagah nahi hai. "
+                    f"Baad mein mauka mile toh zaroor batayenge.")
+            return
 
     # New session — extract ad code from "Hi P1"
     if not session:
@@ -188,6 +205,7 @@ def _complete_flow(from_phone, session):
 
     send_message(from_phone, msg)
     save_lead(from_phone, answers, session, score, category, flags)
+    save_history(from_phone, answers, category)
 
     if category in ('HOT', 'WARM'):
         send_lead_alert(from_phone, answers, score, category, session.get('adCode'), flags)

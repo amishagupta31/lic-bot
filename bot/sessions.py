@@ -2,7 +2,8 @@ import json
 import os
 import requests
 
-_SESSION_TTL = 86400  # 24 hours
+_SESSION_TTL  = 86400       # 24 hours — active flow
+_HISTORY_TTL  = 7 * 86400   # 7 days  — completed lead record
 
 _redis_url   = None
 _redis_token = None
@@ -71,3 +72,25 @@ def new_session(ad_code=None):
         'adCode': ad_code,
         'retryCount': 0,
     }
+
+
+# ── Conversation history (returning users) ───────────────────────────────────
+
+def save_history(phone, answers, category):
+    """Store completed lead so bot recognises returning users."""
+    record = {'answers': answers, 'category': category}
+    if _redis():
+        requests.post(
+            f"{_redis_url}/set/history:{phone}",
+            headers={"Authorization": f"Bearer {_redis_token}", "Content-Type": "application/json"},
+            json=[json.dumps(record), "EX", str(_HISTORY_TTL)],
+            timeout=3,
+        )
+    else:
+        _local[f"history:{phone}"] = record
+
+
+def get_history(phone):
+    if _redis():
+        return _rget(f"history:{phone}")
+    return _local.get(f"history:{phone}")
