@@ -2,8 +2,8 @@ import json
 import os
 import requests
 
-_SESSION_TTL  = 86400       # 24 hours — active flow
-_HISTORY_TTL  = 7 * 86400   # 7 days  — completed lead record
+_SESSION_TTL  = 86400        # 24 hours  — active flow (mid-form)
+_HISTORY_TTL  = 15 * 86400  # 15 days  — completed lead record
 
 _redis_url   = None
 _redis_token = None
