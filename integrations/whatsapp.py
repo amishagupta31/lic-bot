@@ -1,7 +1,15 @@
 import os
 import requests
+from contextvars import ContextVar
 
 GRAPH_URL = "https://graph.facebook.com/v20.0"
+
+# Set per-request so replies always go from the number that received the message
+_reply_number_id: ContextVar[str] = ContextVar('reply_number_id', default='')
+
+
+def set_reply_number(phone_number_id: str):
+    _reply_number_id.set(phone_number_id)
 
 
 def _headers():
@@ -12,7 +20,7 @@ def _headers():
 
 
 def _phone_id():
-    return os.getenv('WHATSAPP_PHONE_NUMBER_ID')
+    return _reply_number_id.get() or os.getenv('WHATSAPP_PHONE_NUMBER_ID')
 
 
 def send_message(to, text):
