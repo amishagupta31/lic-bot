@@ -55,6 +55,11 @@ def _is_message_step(step):
 def handle_lead_message(message, from_phone):
     session = get_session(from_phone)
 
+    # Discard corrupt sessions (from old Redis format bugs)
+    if session and ('step' not in session or 'answers' not in session):
+        delete_session(from_phone)
+        session = None
+
     # New session — extract ad code from "Hi P1"
     if not session:
         body = ''
