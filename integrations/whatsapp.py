@@ -24,7 +24,9 @@ def send_message(to, text):
         "text": {"body": text, "preview_url": False},
     }
     r = requests.post(url, json=payload, headers=_headers())
-    r.raise_for_status()
+    if not r.ok:
+        print(f"WhatsApp send_message error {r.status_code}: {r.text}")
+        r.raise_for_status()
     return r.json()
 
 
@@ -47,7 +49,9 @@ def send_buttons(to, text, buttons):
         },
     }
     r = requests.post(url, json=payload, headers=_headers())
-    r.raise_for_status()
+    if not r.ok:
+        print(f"WhatsApp send_buttons error {r.status_code}: {r.text}")
+        r.raise_for_status()
     return r.json()
 
 

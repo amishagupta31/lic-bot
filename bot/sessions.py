@@ -31,7 +31,7 @@ def _rset(key, value):
     requests.post(
         f"{_redis_url}/set/{key}",
         headers={"Authorization": f"Bearer {_redis_token}", "Content-Type": "application/json"},
-        json={"value": json.dumps(value), "ex": _SESSION_TTL},
+        json=[json.dumps(value), "EX", str(_SESSION_TTL)],
         timeout=3,
     )
 
