@@ -70,7 +70,7 @@ def health():
 @app.route('/debug/redis')
 def debug_redis():
     from bot.sessions import get_session, set_session, delete_session
-    test_phone = 'debug_test'
+    test_phone = 'debug:test:123'
     try:
         set_session(test_phone, {'step': 99, 'test': True, 'answers': {}})
         result = get_session(test_phone)

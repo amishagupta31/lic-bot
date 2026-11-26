@@ -19,12 +19,17 @@ def _redis():
 
 
 def _rget(key):
-    r = requests.get(
-        f"{_redis_url}/get/{key}",
-        headers={"Authorization": f"Bearer {_redis_token}"},
-        timeout=3,
+    r = requests.post(
+        f"{_redis_url}/pipeline",
+        headers={"Authorization": f"Bearer {_redis_token}", "Content-Type": "application/json"},
+        json=[["GET", key]],
+        timeout=5,
     )
-    val = r.json().get('result')
+    if not r.ok:
+        print(f"Redis GET error {r.status_code}: {r.text}")
+        return None
+    results = r.json()
+    val = results[0].get('result') if results else None
     return json.loads(val) if val else None
 
 
