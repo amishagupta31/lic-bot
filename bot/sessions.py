@@ -28,20 +28,24 @@ def _rget(key):
     return json.loads(val) if val else None
 
 
-def _rset(key, value):
-    requests.post(
-        f"{_redis_url}/set/{key}",
+def _rset(key, value, ttl=None):
+    ttl = ttl or _SESSION_TTL
+    r = requests.post(
+        f"{_redis_url}/pipeline",
         headers={"Authorization": f"Bearer {_redis_token}", "Content-Type": "application/json"},
-        json=[json.dumps(value), "EX", str(_SESSION_TTL)],
-        timeout=3,
+        json=[["SET", key, json.dumps(value), "EX", ttl]],
+        timeout=5,
     )
+    if not r.ok:
+        print(f"Redis SET error {r.status_code}: {r.text}")
 
 
 def _rdel(key):
-    requests.get(
-        f"{_redis_url}/del/{key}",
-        headers={"Authorization": f"Bearer {_redis_token}"},
-        timeout=3,
+    requests.post(
+        f"{_redis_url}/pipeline",
+        headers={"Authorization": f"Bearer {_redis_token}", "Content-Type": "application/json"},
+        json=[["DEL", key]],
+        timeout=5,
     )
 
 
@@ -80,12 +84,7 @@ def save_history(phone, answers, category):
     """Store completed lead so bot recognises returning users."""
     record = {'answers': answers, 'category': category}
     if _redis():
-        requests.post(
-            f"{_redis_url}/set/history:{phone}",
-            headers={"Authorization": f"Bearer {_redis_token}", "Content-Type": "application/json"},
-            json=[json.dumps(record), "EX", str(_HISTORY_TTL)],
-            timeout=3,
-        )
+        _rset(f"history:{phone}", record, ttl=_HISTORY_TTL)
     else:
         _local[f"history:{phone}"] = record
 

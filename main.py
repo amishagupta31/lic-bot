@@ -67,6 +67,27 @@ def health():
     return 'LIC Bot is running ✅'
 
 
+@app.route('/debug/redis')
+def debug_redis():
+    from bot.sessions import get_session, set_session, delete_session
+    test_phone = 'debug_test'
+    try:
+        set_session(test_phone, {'step': 99, 'test': True, 'answers': {}})
+        result = get_session(test_phone)
+        delete_session(test_phone)
+        ok = result and result.get('step') == 99
+        return {
+            'redis_url_set': bool(os.getenv('UPSTASH_REDIS_REST_URL')),
+            'redis_token_set': bool(os.getenv('UPSTASH_REDIS_REST_TOKEN')),
+            'client_phone': os.getenv('CLIENT_PHONE', 'NOT SET'),
+            'phone_number_id': os.getenv('WHATSAPP_PHONE_NUMBER_ID', 'NOT SET'),
+            'write_read_ok': ok,
+            'returned_value': result,
+        }
+    except Exception as e:
+        return {'error': str(e)}, 500
+
+
 if __name__ == '__main__':
     start_cron_jobs()
     init_sheet()
