@@ -67,6 +67,31 @@ def health():
     return 'LIC Bot is running ✅'
 
 
+@app.route('/debug/sheet')
+def debug_sheet():
+    from integrations.sheets import save_lead
+    try:
+        save_lead(
+            phone='919999999999',
+            answers={
+                'name': 'Test User',
+                'district': 'district_karnal',
+                'age': 'age_yes',
+                'education': 'edu_cert',
+                'motivation': 'mot_yes',
+                'commission': 'comm_yes',
+                'daily_time': 'time_yes',
+            },
+            session={'adCode': 'P1'},
+            score=85,
+            category='HOT',
+            flags=[],
+        )
+        return {'status': 'ok', 'message': 'Test lead saved — check your Google Sheet'}
+    except Exception as e:
+        return {'status': 'error', 'message': str(e)}, 500
+
+
 @app.route('/debug/redis')
 def debug_redis():
     from bot.sessions import get_session, set_session, delete_session
